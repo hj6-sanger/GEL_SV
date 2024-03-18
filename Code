@@ -1,3 +1,26 @@
+
+#plotting results of non-coding dnSV analysis
+
+gat_results_nddOnly = vroom("~/Documents/GAT_SV_results_for_plot.tsv", delim="\t") 
+
+pdf(width = 8, height = 8, "~/Documents/GAT_SV_results.pdf")
+
+ggplot(gat_results_nddOnly, aes(x=region,y=l2fold,fill=annotation)) + 
+  geom_bar(stat="identity", position="dodge") + 
+  geom_text(aes(label=pval_label), position = position_dodge(0.9),
+            vjust=0, size=6) + 
+  scale_y_continuous(limits = c(-4, 4)) +
+  labs(x="genomic region", y="log2(observed/expected)", 
+       fill="region membership") + 
+  scale_fill_manual(values=c("strong_ndd"="#E20629", 
+                             "non_ndd"= "#088c74")) + 
+  theme_minimal(base_size = 18) + 
+  theme(axis.title = element_text(face="bold"), 
+        axis.text = element_text(size=20), 
+        legend.position = "top")
+
+dev.off()
+
 # =============================================================================
 # Library      : Genomic Properties
 # Name         : handbook-of/GenomicProperty.R
