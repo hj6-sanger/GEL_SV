@@ -1,3 +1,511 @@
+'''
+SV calling and filtering
+'''
+
+import sys
+import os
+f=open(sys.argv[1])
+
+fline = f.readline()
+while fline :
+        fline = fline.strip()
+        fso = fline.split('\t')
+        proband = fso[4].split('/')
+        name = proband[len(proband)-1]
+        path = fso[4] + '/Variations/' + name + '.SV.vcf.gz'
+        os.system('zcat ' + path + ' | python check.py ' + fso[0] + '_proband')
+
+        os.system('/re_gecip/population_genomics/hjung/manta-tmp/svtools/vcfToBedpe -i ' + fso[0] + '_proband_manta.txt -o ' + fso[0] + '_proband.bed')
+
+
+        proband = fso[5].split('/')
+        name = proband[len(proband)-1]
+        path = fso[5] +  '/Variations/' + name + '.SV.vcf.gz'
+
+        os.system('zcat ' + path + ' | python check.py ' + fso[0] + '_father')
+        os.system('/re_gecip/population_genomics/hjung/manta-tmp/svtools/vcfToBedpe -i ' + fso[0] + '_father_manta.txt -o ' + fso[0] + '_father.bed')
+
+
+        proband = fso[6].split('/')
+        name = proband[len(proband)-1]
+        path = fso[6] +  '/Variations/' + name + '.SV.vcf.gz'
+        os.system('zcat ' + path + ' | python check.py ' + fso[0] + '_mother')
+        os.system('/re_gecip/population_genomics/hjung/manta-tmp/svtools/vcfToBedpe -i ' + fso[0] + '_mother_manta.txt -o ' + fso[0] + '_mother.bed')
+
+
+        os.system('python bed.py ' + fso[0] + '_mother.bed')
+        os.system('python bed.py ' + fso[0] + '_father.bed')
+        os.system('python bed.py ' + fso[0] + '_proband.bed')
+
+        os.system('bsub -q short -P re_gecip_population_genomics -n 1 -o log.txt -e err.txt -R"select[mem>200000] rusage[mem=200000] span[hosts=1]" -M200000 "bedtools pairtopair -is -slop 10 -a 2_' + fso[0] + '_proband.bed -b 2_' + fso[0] + '_father.bed > ' + fso[0] + '.father.intersect"')
+
+        os.system('bsub -q short -P re_gecip_population_genomics -n 1 -o log.txt -e err.txt -R"select[mem>200000] rusage[mem=200000] span[hosts=1]" -M200000 "bedtools pairtopair -is -slop 10 -a 2_' + fso[0] + '_proband.bed -b 2_' + fso[0] + '_mother.bed > ' + fso[0] + '.mother.intersect"')
+
+        fline = f.readline()
+f.close()
+
+import sys
+import os
+f=open(sys.argv[1])
+fline = f.readline()
+while fline :
+        fso = fline.split('\t')
+        os.system('cat ' + fso[0] + '_xaa '  +  fso[0] + '_xab ' + fso[0]  + '_xac ' + fso[0]  + '_xad ' + fso[0]  + '_xae ' + fso[0]  + '_xaf > ' + fso[0] + '_intersect')
+        os.system('python stat.py ' +  fso[0] + '_intersect unique_' + fso[0] + '_proband.bed')
+
+        os.system('bedtools pairtopair -a 2_unique_'+fso[0] + '_proband.bed -b 2_' + fso[0] +'_mother.bed -slop 100 > ' + fso[0] +'_mom_slop100')
+
+        os.system('bedtools pairtopair -a 2_unique_'+fso[0] + '_proband.bed -b 2_' + fso[0] +'_father.bed -slop 100 > ' + fso[0] +'_dad_slop100')
+        o=set()
+
+        k=open(fso[0] + '_mom_slop100')
+        kline = k.readline()
+        while kline :
+                kso = kline.split('\t')
+                if kso[10] == kso[27] :
+                        o.add(kso[0] + '@' + kso[1] + '@' + kso[2])
+                kline = k.readline()
+        k.close()
+
+        k=open(fso[0] + '_dad_slop100')
+        kline = k.readline()
+        while kline :
+                kso = kline.split('\t')
+                if kso[10] == kso[27] :
+                        o.add(kso[0] + '@' + kso[1] + '@' + kso[2])
+                kline = k.readline()
+        k.close()
+
+        k=open('2_unique_'+fso[0] + '_proband.bed')
+        g=open('3_unique_'+fso[0] + '_proband.bed','w')
+
+        kline = k.readline()
+        while kline :
+                kso = kline.split('\t')
+                tmp = kso[0] + '@' + kso[1] + '@' + kso[2]
+                if tmp not in o :
+                        g.write(kline)
+                kline = k.readline()
+        k.close()
+        g.close()
+        fline = f.readline()
+f.close()
+
+
+'''
+Age analysis
+'''
+
+solve=set()
+
+f=open('../solved_ids.tsv')
+fline = f.readline()
+while fline :
+        fso = fline.split('\t')
+        solve.add(fso[0])
+        fline = f.readline()
+f.close()
+
+
+from scipy import stats
+sv=set()
+
+f=open('../Affected-v4-phased_denovo_SV.txt')
+
+fline = f.readline()
+
+while fline :
+        fline = fline.strip()
+        fso = fline.split('\t')
+        sv.add(fso[11])
+        fline = f.readline()
+f.close()
+
+f=open('../v4-3All-FINAL-META.txt')
+
+fline = f.readline()
+a=[]
+b=[]
+c=[]
+d=[]
+disease = set()
+el= 0
+disease.add('Neuro_disorder')
+disease.add('Other_disorder')
+while fline :
+        fline = fline.strip()
+        fso = fline.split('\t')
+
+        disease.add(fso[17])
+
+        father = int(fso[11]) - int(fso[13])
+        mother = int(fso[11]) - int(fso[15])
+       
+        if  fso[5].startswith('A') :
+              
+                a.append(fso[1])
+                b.append(father)
+                c.append(mother)
+                d.append(fso[17])
+ 
+        fline = f.readline()
+
+f.close()
+
+print (el)
+
+dt_f = dict(zip(a,b))
+dt_m = dict(zip(a,c))
+g=open('propotion.txt','w')
+g1=open('all-father-age.txt','w')
+g2=open('all-mother-age.txt','w')
+g3=open('driver-all-age-boxplot.txt','w')
+
+g3.write('disorder' + '\t'  + 'dnSV' + '\t'+'father_age' + '\t' + 'mother_age' + '\n')
+from scipy.stats import mannwhitneyu
+import numpy as np
+
+tot_f_a=[]
+tot_f_b=[]
+
+tot_m_a=[]
+tot_m_b=[]
+
+for gene in disease :
+        i=0
+        f_aa=[]
+        f_bb=[]
+
+        m_aa=[]
+        m_bb=[]
+        while i <  len(d) :
+                if d[i] == gene :
+                        name = gene.replace(' ','_')
+                        if a[i] in sv :
+                                f_aa.append(b[i])
+                                tot_f_a.append(b[i])
+
+                                g1.write(name + '\t' + '1' + '\t' + str(b[i]) + '\n')
+                                g2.write(name + '\t' + '1' + '\t' + str(c[i]) + '\n')
+                                g3.write('All_disorders' + '\t' + 'with_dnSV' + '\t' +  str(b[i]) + '\t' + str(c[i]) + '\n')
+                                g3.write(gene + '\t' + 'with_dnSV' + '\t' +  str(b[i]) + '\t' + str(c[i]) + '\n')
+                            
+                                m_aa.append(c[i])
+				tot_m_a.append(c[i])
+                        else :
+                                f_bb.append(b[i])
+                                tot_f_b.append(b[i])
+
+                                g1.write(name + '\t' + '2' + '\t' + str(b[i]) + '\n')
+                                g2.write(name + '\t' + '2' + '\t' + str(c[i]) + '\n')
+                                g3.write('All_disorders' + '\t' + 'without_dnSV' + '\t' +  str(b[i]) + '\t' + str(c[i]) + '\n')
+                                g3.write(gene + '\t' + 'without_dnSV' + '\t' +  str(b[i]) + '\t' + str(c[i]) + '\n')
+                               
+                                m_bb.append(c[i])
+                                tot_m_b.append(c[i])
+                i=i+1
+        if len(f_aa) > 0  and len(f_bb) > 0 :
+                print (gene,len(f_aa),len(f_bb))
+
+                res1=mannwhitneyu(f_aa,f_bb)
+                res3=stats.ttest_ind(f_aa,f_bb)
+                print (np.mean(f_aa),np.mean(f_bb),np.median(f_aa),np.median(f_bb))
+                res2=mannwhitneyu(m_aa,m_bb)
+                res4=stats.ttest_ind(m_aa,m_bb)
+                print (np.mean(m_aa),np.mean(m_bb),np.median(m_aa),np.median(m_bb))
+                print ("\n")
+
+                g.write(gene + '\t' + str(len(f_aa)) + '\t' + str(len(f_bb)) + '\t' + str(res1[1]) + '\t' + str(res2[1]) + '\t' + str(res3[1]) + '\t' + str(res4[1]) +'\n')
+g.close()
+g1.close()
+g2.close()
+g3.close()
+
+
+
+
+
+'''
+Visualization of SVs using samplot
+'''
+
+import sys
+import os
+
+k=open(sys.argv[1])
+g=open('hg38_4new-clustered-SV.txt','w')
+g1=open('hg19_4new-clustered-SV.txt','w')
+kline = k.readline()
+j=1
+while kline :
+        kline = kline.strip()
+        kso = kline.split('\t')
+        f=open('/re_gecip/population_genomics/hjung/metadata/3-FINAL-META-GRCH38.txt')
+        f=open('v4-3All-FINAL-META.txt')
+        fline = f.readline()
+        ids = kso[len(kso)-1]
+       
+        while fline :
+                fline = fline.strip()
+                fso = fline.split('\t')
+                if fso[1] == ids and fso[0] == 'hg38' :
+                        g.write(kline + '\t' + str(j) +  '\n')
+                        print (fline)
+                        rso = fso[8].split('/')
+                        path = fso[8] + '/Assembly/' + rso[5] + '.bam'
+                        rso = kso[2].split('_')
+                        chro = 'chr' + kso[0]
+
+                      
+                        start=int(kso[1])
+
+                        end=int(kso[4])
+                        gap = int(round((end-start) * 1))
+                  
+                        start = start -gap
+                        end = end + gap
+
+
+
+                        os.system('time samplot plot --coverage_only -o ' + str(j) + '_proband_' + ids + '.pdf -b ' + path + ' -c' + chro  + ' -s ' + str(start) + ' -e ' + str(end))
+
+                   
+
+
+                        rso = fso[9].split('/')
+                        path = fso[9] + '/Assembly/' + rso[5] + '.bam'
+                        os.system('time samplot plot --coverage_only -o ' + str(j)+ '_father_' + ids + '.pdf -b ' + path + ' -c' + chro  + ' -s ' + str(start) + ' -e ' + str(end))
+
+                        rso = fso[10].split('/')
+                        path = fso[10] + '/Assembly/' + rso[5] + '.bam'
+                        os.system('time samplot plot --coverage_only -o ' +str(j) + '_mother_' + ids + '.pdf -b ' + path + ' -c' + chro  + ' -s ' + str(start) + ' -e ' + str(end))
+
+                        j=j+1
+                        break
+                elif fso[1] == ids and fso[0] == 'hg19' :
+                        g1.write(kline + '\n')
+                        break
+                fline = f.readline()
+        f.close()
+
+        kline = k.readline()
+f.close()
+g.close()
+g1.close()
+
+
+
+
+'''
+Visualization of SVs using IGV
+'''
+
+
+f=open(sys.argv[1])
+fline = f.readline()
+a=[]
+b=[]
+while fline :
+        fline = fline.strip()
+        fso = fline.split('\t')
+
+        a.append(fso[0] +'@P')
+        kso = fso[4].split('/')
+        name = kso[len(kso)-1]
+        b.append(fso[4] + '/Assembly/' + name + '.bam')
+        a.append(fso[0] +'@F')
+        kso = fso[5].split('/')
+        name = kso[len(kso)-1]
+        b.append(fso[5] + '/Assembly/' + name + '.bam')
+        a.append(fso[0] +'@M')
+        kso = fso[6].split('/')
+        name = kso[len(kso)-1]
+        b.append(fso[6] + '/Assembly/' + name + '.bam')
+        fline = f.readline()
+f.close()
+
+dt=dict(zip(a,b))
+
+g=open('IGV.bat','w')
+f=open('head.txt')
+fline = f.readline()
+while fline :
+        fline = fline.strip()
+        fso = fline.split('\t')
+        g.write('new\n')
+        g.write('genome hg38\n')
+        g.write('snapshotDirectory ./\n')
+
+        ge = dt.get(fso[len(fso)-3] +'@P')
+        g.write('load ' + ge + '\n')
+        ge = dt.get(fso[len(fso)-3] +'@F')
+        g.write('load ' + ge + '\n')
+        ge = dt.get(fso[len(fso)-3] +'@M')
+        g.write('load ' + ge + '\n')
+
+        start = int(fso[1])-50
+        end = int(fso[2]) + 50
+        tmp = 'PROBAND_' + fso[0] + '@' + fso[1] + '@' + fso[2]
+        g.write('goto ' + fso[0] + ':' + str(start) + '-' + str(end) + '\n')
+        g.write('collapse\n')
+        g.write('snapshot ' + tmp + '.png\n')
+	fline = f.readline()
+f.close()
+g.close)_
+
+'''
+Phasing analysis-making an input for unfazed
+'''
+
+
+import os
+import sys
+k=open(sys.argv[1])
+kline = k.readline()
+while kline :
+        kline = kline.strip()
+        f=open('v4-3All-FINAL-META.txt')
+        fline = f.readline()
+        while fline :
+                fline = fline.strip()
+                fso = fline.split('\t')
+                if fso[1] == kline and fso[0] == 'hg38' :
+
+                        os.system('mkdir ./' + kline)
+                        os.system('gatk HaplotypeCaller -R /re_gecip/population_genomics/hjung/genome.fa -I ./'+ fso[1] + '.bam -L ' + fso[1] + '_sv.bed -O ./' +kline + '/' +  fso[1]+'.vcf.gz -ERC GVCF')
+                        os.system('gatk HaplotypeCaller -R /re_gecip/population_genomics/hjung/genome.fa -I ./'+ fso[2] + '.bam -L ' + fso[1] + '_sv.bed -O ./'+ kline + '/'  + fso[2]+'.vcf.gz -ERC GVCF')
+                        os.system('gatk HaplotypeCaller -R /re_gecip/population_genomics/hjung/genome.fa -I ./'+ fso[3] + '.bam -L ' + fso[1] + '_sv.bed -O ./' + kline + '/' +   fso[3]+'.vcf.gz -ERC GVCF')
+                        os.system('gatk CombineGVCFs -R /re_gecip/population_genomics/hjung/genome.fa --variant ./' + kline + '/' +  fso[1]+'.vcf.gz --variant ./' + kline + '/' +  fso[2]+'.vcf.gz --variant ./' + kline + '/' + fso[3] +'.vcf.gz -O ./' + kline + '/' +  fso[1] + 'cohort.vcf.gz')
+
+                        os.system('gatk GenotypeGVCFs -R /re_gecip/population_genomics/hjung/genome.fa -V ./'+ kline + '/'+  fso[1] +'cohort.vcf.gz -O ./' + kline + '/' +  fso[1] +'genotype.vcf.gz')
+
+
+                        os.system('sambamba view -f bam -h -L '+fso[1]+'_sv.bed ' +  fso[1] +'.bam > target_' + fso[1] + '.bam')
+                        os.system('samtools index target_' + fso[1] + '.bam')
+
+
+                        kso = fso[8].split('/')
+                        pro = kso[len(kso)-1]
+
+                        os.system('gunzip ./' + fso[1] +'/' + fso[1] +'genotype.vcf.gz')
+
+                        os.system('bedtools intersect -a ./' + fso[1] + '_sv.bed -b ./' + fso[1] + '/' + fso[1] +'genotype.vcf -wa -wb > ./' + fso[1] + '/intersect.txt')
+
+                        os.system('python pick.py ./' + fso[1] + '/intersect.txt ./'+fso[1] + '/2intersect.txt')
+                        os.system('python map.py ' + fso[1])
+                        os.system('python new-dup-pick.py ' + fso[1])
+
+                        '''     
+                        os.system('unfazed -t 4 -s ./'+ kline + '/'  + fso[1] +'genotype.vcf.gz -p ' + fso[1] + '_trio.ped --bam-pairs ' + pro + ':./target_' + fso[1] + '.bam -g 38 -d ' + fso[1] +'_sv.bed --outfile ' + fso[1] + '_unfazed.txt')
+                        '''
+                        break
+                fline = f.readline()
+        f.close()
+
+        kline = k.readline()
+k.close()
+
+
+
+
+
+'''
+Classifying triplications into meiosis I and II
+'''
+
+
+import sys
+
+f=open('./3intersect.txt')
+g=open('./4intersect.txt','w')
+fline = f.readline()
+while fline :
+        fline = fline.strip()
+        fso = fline.split('\t')
+        on=1
+        if fso[4] == '0/1' and float(fso[5]) < 0.35 :
+                on =0
+        if fso[6] == '0/1' and float(fso[7]) < 0.35 :
+                on=0
+
+        if on == 1 :
+                if fso[4] == '0/0' and fso[6] == '1/1' and fso[2] == '0/1' :
+
+                        if float(fso[3]) >=0.66 and float(fso[3]) <=0.8:
+                                g.write('mother_both' + '\t' + fline + '\n')
+                        elif float(fso[3]) <=0.33 and float(fso[3]) >=0.2:
+                                g.write('father' + '\t' + fline + '\n')
+
+                elif fso[4] == '1/1' and fso[6] == '0/0' and fso[2] == '0/1' :
+
+                        if float(fso[3]) <=0.33 and float(fso[3]) >=0.2:
+                                g.write('mother_both' + '\t' + fline + '\n')
+                        if float(fso[3]) >=0.66 and float(fso[3]) <=0.8:
+                                g.write('father' + '\t' + fline + '\n')
+
+                elif fso[4] == '0/0' and (fso[6] == '0/1' and float(fso[7]) >=0.4 and float(fso[7]) <= 0.6)  and fso[2] == '0/1' :
+                        if float(fso[3]) <=0.33 and float(fso[3]) >=0.2:
+                                g.write('father,mother_meiosis_I' + '\t' + fline + '\n')
+
+                        if float(fso[3]) >=0.66 and float(fso[3]) <=0.8:
+                                g.write('mother_meiosis_II' + '\t' + fline + '\n')
+
+                elif (fso[4] == '0/1' and float(fso[5]) >=0.4 and float(fso[5]) <= 0.6) and fso[6] == '0/0' and fso[2] == '0/1' :
+                        if float(fso[3]) <=0.33 and float(fso[3]) >=0.2:
+                                g.write('mother_both' + '\t' + fline + '\n')
+                        if float(fso[3]) >=0.66 and float(fso[3]) <=0.8:
+                                g.write('father' + '\t' + fline + '\n')
+                elif (fso[4] == '0/1' and float(fso[5]) >=0.4 and float(fso[5]) <= 0.6) and fso[6] == '1/1' and fso[2] == '0/1' :
+                        if float(fso[3]) <=0.33 and float(fso[3]) >=0.2:
+                                g.write('father' + '\t' + fline + '\n')
+                        if float(fso[3]) >=0.66 and float(fso[3]) <=0.8:
+                                g.write('mother_both' + '\t' + fline + '\n')
+                elif fso[4] == '1/1' and (fso[6] == '0/1' and float(fso[7]) >=0.4 and float(fso[7]) <= 0.6) and fso[2] == '0/1' :
+                        if float(fso[3]) <=0.33 and float(fso[3]) >=0.2:
+                                g.write('mother_meiosis_II' + '\t' + fline + '\n')
+                        if float(fso[3]) >=0.66 and float(fso[3]) <=0.8:
+                                g.write('father,mother_meiosis_I' + '\t' + fline + '\n')
+        fline = f.readline()
+f.close()
+
+
+'''
+Phasing analysis-making an input for unfazed
+'''
+
+k=open('sample.txt')
+kline = k.readline()
+while kline :
+        kline = kline.strip()
+        g=open(kline +'_trio.ped','w')
+        g.write('#Family-ID\tIndividual-ID\tPaternal-ID\tMaternal-ID\tGender\n')
+        f=open('v4-3All-FINAL-META.txt')
+        fline = f.readline()
+        while fline :
+                fline = fline.strip()
+                fso = fline.split('\t')
+                if fso[1] == kline and fso[0] == 'hg38' :
+                        pro=fso[8].split('/')
+                        v2pro=pro[len(pro)-1]
+
+                        fa = fso[9].split('/')
+                        v2fa = fa[len(fa)-1]
+
+                        mo = fso[10].split('/')
+                        v2mo =mo[len(mo)-1]
+                        g.write(kline + '\t' + v2pro + '\t' + v2fa + '\t' + v2mo)
+                        if fso[12] == 'male' :
+                                g.write('\t' + '1' + '\n')
+                        elif fso[12] == 'female':
+                                g.write('\t' + '2' + '\n')
+                        g.write(kline + '\t' + v2fa + '\t' +    '0' + '\t' + '0' + '\t' + '1' + '\n')
+                        g.write(kline + '\t' + v2mo + '\t' + '0' + '\t' + '0' + '\t' +  '2' + '\n')
+                        break
+                fline = f.readline()
+        f.close()
+        g.close()
+        kline = k.readline()
+k.close()
 
 #plotting results of non-coding dnSV analysis
 
