@@ -1,5 +1,8 @@
 '''
 SV calling and filtering
+This script extracted SVs in bedpe format from vcf files using vcfToBedpe.
+"check.py" script was used to extract manta calls (not canvas calls in vcf). 
+
 '''
 
 import sys
