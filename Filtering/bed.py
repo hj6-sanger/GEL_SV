@@ -2,7 +2,7 @@ import sys
 
 '''
 This script was called by "filtering.py".
-The imprse
+This script filters out SVs with imprecise breakpoints and rescues such SVs flagged as 'ColocalizedCanva'.
 
 f=open(sys.argv[1])
 g=open('2_' + sys.argv[1],'w')
