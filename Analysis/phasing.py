@@ -1,5 +1,6 @@
 '''
-Phasing analysis-making an input for unfazed
+This script makes an input for Unfazed tool using Haplotype caller. 
+The input for this script is a list of SVs with the proband ID.
 '''
 
 
