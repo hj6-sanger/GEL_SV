@@ -1,6 +1,8 @@
 import sys
 
-#The input for the following script 
+#The input for the following script takes a joint calling vcf (i.e., trio) in a duplicated region using HaplotypeCaller as an input.
+#This script classifies the timing of maternally-derived duplications into meiosis I and meiosis II.  
+
 f=open('./3intersect.txt')
 g=open('./4intersect.txt','w')
 fline = f.readline()
