@@ -1,9 +1,9 @@
 '''
 SV calling and filtering
-This script extracted SVs in bedpe format from VCF files using vcfToBedpe.
+This script extracts SVs in bedpe format from VCF files using vcfToBedpe.
 "check.py" script was called to only extract manta calls (not canvas calls in VCF). 
 "bed.py" script was called to filter out SVs with imprecise breakpoints and rescue such SVs flagged as 'ColocalizedCanva'.
-
+This script takes an overlap of SVs in probands with those in their parents to get de novo SVs. 
 '''
 
 import sys
