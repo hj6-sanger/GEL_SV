@@ -1,5 +1,6 @@
 import sys
 
+#The input for the following script 
 f=open('./3intersect.txt')
 g=open('./4intersect.txt','w')
 fline = f.readline()
