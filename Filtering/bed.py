@@ -15,7 +15,7 @@ while fline :
 		lens1= float(fso[2]) - float(fso[1])
 		lens2= float(fso[5]) - float(fso[4])
 
-		if lens1 <= 50 or lens2 <=50 :
+		if 'IMPRECISE' not in fline :
 			g.write(fline + '\n')
 		else :
 			if 'ColocalizedCanvas' in fline :
