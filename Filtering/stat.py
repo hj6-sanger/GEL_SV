@@ -1,3 +1,6 @@
+'''
+This script counts the number of overlaps to filter out recurrent artefacts.
+'''
 
 import sys
 f=open(sys.argv[1])
