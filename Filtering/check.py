@@ -1,9 +1,12 @@
 import sys
 import os
-"""
-filtering.py
 
-g=open(sys.argv[1] + '_manta.txt','w')
+'''
+This script was used to only extract manta calls (not canvas calls in VCF). 
+This script was called by "filtering.py".
+'''
+
+f=open(sys.argv[1] + '_manta.txt','w')
 g1=open(sys.argv[1]+ '_canvas.txt','w')
 o=set()
 for line in sys.stdin :
