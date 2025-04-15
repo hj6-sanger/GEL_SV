@@ -2,7 +2,7 @@ import sys
 import os
 
 '''
-This script was used to only extract manta calls (not canvas calls in VCF). 
+This script only extracts manta calls for downstream analysis (not canvas calls in VCF). 
 This script was called by "filtering.py".
 '''
 
