@@ -1,5 +1,6 @@
 solve=set()
 
+#This input file contains probands with diagnostic SNVs/Indels.
 f=open('../solved_ids.tsv')
 fline = f.readline()
 while fline :
@@ -12,6 +13,8 @@ f.close()
 from scipy import stats
 sv=set()
 
+#This input file contains probands with de novo SVs.
+
 f=open('../Affected-v4-phased_denovo_SV.txt')
 
 fline = f.readline()
@@ -22,6 +25,9 @@ while fline :
         sv.add(fso[11])
         fline = f.readline()
 f.close()
+
+
+#This input file contains metadata such as age and disease category. 
 
 f=open('../v4-3All-FINAL-META.txt')
 
@@ -72,6 +78,8 @@ tot_f_b=[]
 
 tot_m_a=[]
 tot_m_b=[]
+
+# The following script compares the parents' age between probands with dnSVs and those without dnSVs. 
 
 for gene in disease :
         i=0
