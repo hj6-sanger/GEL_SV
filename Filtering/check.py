@@ -1,5 +1,7 @@
 import sys
 import os
+"""
+filtering.py
 
 g=open(sys.argv[1] + '_manta.txt','w')
 g1=open(sys.argv[1]+ '_canvas.txt','w')
