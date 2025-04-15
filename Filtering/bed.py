@@ -1,5 +1,9 @@
 import sys
 
+'''
+This script was called by "filtering.py".
+The imprse
+
 f=open(sys.argv[1])
 g=open('2_' + sys.argv[1],'w')
 
@@ -13,6 +17,9 @@ while fline :
 
 		if lens1 <= 50 or lens2 <=50 :
 			g.write(fline + '\n')
+		else :
+			if 'ColocalizedCanvas' in fline :
+				g.write(fline + '\n')
 	fline = f.readline()
 f.close()
 g.close()
