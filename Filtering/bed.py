@@ -2,7 +2,7 @@ import sys
 
 '''
 This script was called by "filtering.py".
-This script filters out SVs with a length < 50
+This script filters out SVs with a length < 50.
 This script filters out SVs with imprecise breakpoints and rescues such SVs flagged as 'ColocalizedCanva'.
 '''
 
