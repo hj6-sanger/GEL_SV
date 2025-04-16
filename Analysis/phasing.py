@@ -1,6 +1,6 @@
 '''
 This script makes an input for Unfazed tool using Haplotype caller. 
-The input for this script is a list of SVs with the proband ID.
+The input for this script is a list of SVs (i.e., genomic coordinates of deletion) with the proband ID.
 '''
 
 
