@@ -1,6 +1,10 @@
-solve=set()
+'''
+The script compares the parents' age between probands with dnSVs and those without dnSVs.
+'''
+
 
 #This input file contains probands with diagnostic SNVs/Indels.
+solve=set()
 f=open('../solved_ids.tsv')
 fline = f.readline()
 while fline :
