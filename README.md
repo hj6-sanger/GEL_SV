@@ -21,9 +21,10 @@ Welcome to this site for GEL-SV This site will serve as a source code repository
  ```
  "/Classification" also contains examples of the input files for this script (e.g., Loss-Loss.bedpe, Inv-Loss.bedpe, Loss-invLoss.bedpe, Loss-invDup.bedpe, DUP-TRP|INV-DUP.bedpe, DUP-NML-DUP.bedpe, and Dispersed_Dup.bedpe)
 
-*Running the script with an example input
-'''
+ * Running the script with an example input
+
+ ```
 python Naive_classification.py Loss-Loss.bedpe
-'''
+ ```
 
 
