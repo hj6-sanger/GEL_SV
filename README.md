@@ -11,15 +11,15 @@ Welcome to this site for GEL-SV This site will serve as a source code repository
 
 1. "Classification" contains a command-line executable script for classifying complex SVs. The current naive script can classify Loss-Loss, Inv-Loss, Loss-Inv-Loss, Loss-invDup, DUP-TRP/INV-DUP, and Dispersed Dup. We aim to publish a method paper on a fully automated SV classification pipeline using a bam file as input.
 
-2. The script takes a bedpe file with clusered SV as an input. 
+2. The script takes a bedpe file with clustered SVs as input. 
  
  
- 
- * Example
+ * Example input bedpe (/Classification/Loss-invLoss.bedpe)
  ```
-samtools_home = /cluster/data/scratch/share/samtools-0.1.19
-bwa_home = /cluster/data/scratch/share/bwa-0.6.2
-blast_home = /cluster/bio/bin
+21	22552774	22552776	21	22586470	22586472	MantaINV	1	+	+
+21	22579426	22579430	21	22586794	22586798	MantaINV	1	-	-
+ ```
+
 
 
 
