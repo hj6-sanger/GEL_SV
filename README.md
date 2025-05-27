@@ -9,7 +9,9 @@ Welcome to this site for GEL-SV This site will serve as a source code repository
 
 # Running a script for SV classification
 
-1. "Classification" contains a command-line executable script for classifying complex SVs. The current naive script can classify Loss-Loss, Inv-Loss, Loss-Inv-Loss, Loss-invDup, DUP-TRP/INV-DUP, and Dispersed Dup. We plan to make a fully automated SV classification pipeline with a bam file as an input, aiming for a publication as a method paper. 
+1. "Classification" contains a command-line executable script for classifying complex SVs. The current naive script can classify Loss-Loss, Inv-Loss, Loss-Inv-Loss, Loss-invDup, DUP-TRP/INV-DUP, and Dispersed Dup. We aim to publish a method paper on a fully automated SV classification pipeline using a bam file as input.
+
+2. The script takes a bedpe file with clusered SV as an input. 
  
  
  
