@@ -3,7 +3,7 @@
 Welcome to this site for GEL-SV This site will serve as a source code repository for analyzing GEL-SV data. 
 
 
-# Running TEA
+# Running a script for SV classification
 
 1. Fill out **conf_file**
  * Example
